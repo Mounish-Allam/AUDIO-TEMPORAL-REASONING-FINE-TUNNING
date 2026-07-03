@@ -1,0 +1,19 @@
+{
+  "run_id": "qlora_v1",
+  "train_samples": 300,
+  "test_samples": 100,
+  "num_epochs_configured": 1,
+  "learning_rate": 1e-4,
+  "lora_r": 32,
+  "lora_alpha": 64,
+  "lora_dropout": 0.05,
+  "val_split": 0.05,
+  "seed": 42,
+  "loss_by_epoch": [
+    { "epoch": 1, "train_loss": 0.3049, "val_loss": 1.9381, "is_best": true }
+  ],
+  "final_saved_checkpoint_matches_best": true,
+  "weights_status": "lost",
+  "weights_note": "run_finetune.py always saves to checkpoints/final_adapter; this run's weights were overwritten by the later 1,000-sample run before being copied elsewhere. Only this metrics/evaluation data survived.",
+  "log_file": "finetune.log"
+}

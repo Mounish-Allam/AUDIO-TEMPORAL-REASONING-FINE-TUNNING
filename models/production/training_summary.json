@@ -1,0 +1,23 @@
+{
+  "run_id": "qlora_v3",
+  "alias": "production",
+  "train_samples": 3000,
+  "test_samples": 300,
+  "num_epochs_configured": 2,
+  "learning_rate": 1e-4,
+  "lora_r": 32,
+  "lora_alpha": 64,
+  "lora_dropout": 0.05,
+  "val_split": 0.05,
+  "seed": 42,
+  "loss_by_epoch": [
+    { "epoch": 1, "train_loss": 0.2181, "val_loss": 1.5947, "is_best": true },
+    { "epoch": 2, "train_loss": 0.1324, "val_loss": 1.6797, "is_best": false }
+  ],
+  "final_saved_checkpoint_matches_best": false,
+  "final_saved_checkpoint_note": "run_finetune.py saves the last-epoch model state, not the best-val-loss checkpoint (checkpoint-best from epoch 1). Reported metrics are from the epoch-2, slightly overfit model. Known bug, not yet fixed.",
+  "weights_status": "available",
+  "weights_path": "checkpoints/final_adapter_3000samples",
+  "weights_note": "Also currently identical to checkpoints/final_adapter (the live path scripts/run_finetune.py writes to), since no later run has overwritten it yet. Do not rely on checkpoints/final_adapter staying this way -- it will be silently overwritten by the next training run.",
+  "log_file": "finetune_v3.log"
+}

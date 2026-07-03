@@ -1,0 +1,34 @@
+{
+  "source": {
+    "base": "outputs/benchmark_report_base_v2.json",
+    "sft": "outputs/benchmark_report_sft_v2.json"
+  },
+  "base": {
+    "rouge_1": 13.32,
+    "rouge_l": 11.52,
+    "bert_score": 85.45,
+    "hallucination_rate": 90.0,
+    "temporal_ordering_accuracy": 75.23,
+    "sound_event_recall": 54.33,
+    "latency_p50_ms": 3267.0,
+    "latency_p95_ms": 5696.3,
+    "latency_mean_ms": 3470.58,
+    "latency_max_ms": 10512.9,
+    "total_samples": 200,
+    "skipped_samples": 0
+  },
+  "sft": {
+    "rouge_1": 35.76,
+    "rouge_l": 31.55,
+    "bert_score": 90.16,
+    "hallucination_rate": 78.0,
+    "temporal_ordering_accuracy": 86.6,
+    "sound_event_recall": 51.69,
+    "latency_p50_ms": 1516.3,
+    "latency_p95_ms": 1902.1,
+    "latency_mean_ms": 1553.91,
+    "latency_max_ms": 2382.6,
+    "total_samples": 200,
+    "skipped_samples": 0
+  }
+}

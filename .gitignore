@@ -12,6 +12,9 @@ outputs/
 data/
 checkpoints/
 *.json
+# ...except the small, hand-curated model registry / Space metadata files:
+!models/**/*.json
+!hf_space/**/*.json
 
 # Model weights
 *.bin

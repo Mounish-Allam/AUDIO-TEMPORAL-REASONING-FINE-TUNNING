@@ -1,0 +1,21 @@
+{
+  "run_id": "qlora_v2",
+  "train_samples": 1000,
+  "test_samples": 200,
+  "num_epochs_configured": 2,
+  "learning_rate": 1e-4,
+  "lora_r": 32,
+  "lora_alpha": 64,
+  "lora_dropout": 0.05,
+  "val_split": 0.05,
+  "seed": 42,
+  "loss_by_epoch": [
+    { "epoch": 1, "train_loss": 0.2448, "val_loss": 1.6959, "is_best": true },
+    { "epoch": 2, "train_loss": 0.1453, "val_loss": 1.7731, "is_best": false }
+  ],
+  "final_saved_checkpoint_matches_best": false,
+  "final_saved_checkpoint_note": "run_finetune.py saves the last-epoch model state, not the best-val-loss checkpoint (checkpoint-best from epoch 1). Reported metrics are from the epoch-2, slightly overfit model. Known bug, not yet fixed.",
+  "weights_status": "lost",
+  "weights_note": "run_finetune.py always saves to checkpoints/final_adapter; this run's weights were overwritten by the later 3,000-sample run before being copied elsewhere. Only this metrics/evaluation data survived.",
+  "log_file": "finetune_v2.log"
+}
