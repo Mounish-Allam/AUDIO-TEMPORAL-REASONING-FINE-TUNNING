@@ -1,5 +1,6 @@
 # Core ML stack — Qwen2.5-Omni requires transformers >= 4.52
 torch>=2.1.0
+torchvision  # required by transformers' auto video-processor loading, even for audio-only use
 transformers>=4.52.0
 peft>=0.10.0
 trl>=0.8.0

@@ -24,9 +24,17 @@ fine for a portfolio/research project.
 import argparse
 import json
 import random
+import sys
 from pathlib import Path
 
 import numpy as np
+
+# Windows defaults stdout/stderr to the system codepage (not UTF-8) when
+# they aren't attached to a real console (e.g. redirected to a file) —
+# this file's prints use non-ASCII characters.
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8")
+    sys.stderr.reconfigure(encoding="utf-8")
 
 TEMPORAL_PROMPTS = [
     "Describe the temporal order of events in this audio clip.",

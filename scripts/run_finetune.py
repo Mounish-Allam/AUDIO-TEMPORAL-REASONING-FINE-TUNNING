@@ -2,6 +2,13 @@ import os
 import sys
 sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 
+# Windows defaults stdout/stderr to the system codepage (not UTF-8) when
+# they aren't attached to a real console (e.g. redirected to a file) —
+# finetune/dataset.py logs non-ASCII characters during data loading.
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8")
+    sys.stderr.reconfigure(encoding="utf-8")
+
 import argparse
 import logging
 import torch

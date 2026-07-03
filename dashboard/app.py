@@ -37,15 +37,31 @@ COLORS = {
     "orange": "#FFA500",
 }
 
-# ── Load all outputs ──────────────────────────────────────────────────────────
-
-report      = load_json("outputs/benchmark_report.json")
-predictions = load_json("outputs/predictions.json")
-train_data  = load_json("data/train.json")
-test_data   = load_json("data/test.json")
-pref_data   = load_json("data/preference_pairs.json")
-ft_config   = load_yaml("configs/finetune_config.yaml")
-dpo_config  = load_yaml("configs/dpo_config.yaml")
+# ── Scaling-run registry ──────────────────────────────────────────────────────
+# Each completed base->SFT comparison run, at increasing training-data scale.
+# Filenames are fixed (scripts save "benchmark_report.json"/"predictions.json"
+# each time, so previous runs were copied here under a distinct name to avoid
+# being overwritten by the next run).
+SCALE_RUNS = {
+    "3,000 train / 300 test (latest, 2 epochs)": {
+        "base_report": "outputs/benchmark_report_base_v3.json",
+        "sft_report":  "outputs/benchmark_report_sft_v3.json",
+        "base_pred":   "outputs/predictions_base_v3.json",
+        "sft_pred":    "outputs/predictions_sft_v3.json",
+    },
+    "1,000 train / 200 test (2 epochs)": {
+        "base_report": "outputs/benchmark_report_base_v2.json",
+        "sft_report":  "outputs/benchmark_report_sft_v2.json",
+        "base_pred":   "outputs/predictions_base_v2.json",
+        "sft_pred":    "outputs/predictions_sft_v2.json",
+    },
+    "300 train / 100 test (1 epoch)": {
+        "base_report": "outputs/benchmark_report_base.json",
+        "sft_report":  "outputs/benchmark_report_sft.json",
+        "base_pred":   "outputs/predictions_base.json",
+        "sft_pred":    "outputs/predictions_sft.json",
+    },
+}
 
 # ── Sidebar ───────────────────────────────────────────────────────────────────
 
@@ -58,22 +74,39 @@ with st.sidebar:
     st.markdown("**Navigation**")
     page = st.radio(
         "nav",
-        ["Overview", "Dataset", "Training Config", "Evaluation", "Latency",
-         "Predictions", "DPO Pairs"],
+        ["Scaling Curve", "Overview", "Dataset", "Training Config", "Evaluation",
+         "Latency", "Predictions", "DPO Pairs"],
         label_visibility="collapsed",
     )
     st.divider()
 
-    st.markdown("**Custom paths**")
-    report_path = st.text_input("Report JSON", "outputs/benchmark_report.json")
-    pred_path   = st.text_input("Predictions JSON", "outputs/predictions.json")
+    st.markdown("**Scaling run**")
+    scale_choice = st.selectbox(
+        "Which run to inspect on the pages below",
+        list(SCALE_RUNS.keys()),
+        label_visibility="collapsed",
+    )
+    run = SCALE_RUNS[scale_choice]
+
+    st.divider()
+    st.markdown("**Custom paths** (override the selection above)")
+    report_path = st.text_input("Report JSON", run["sft_report"])
+    pred_path   = st.text_input("Predictions JSON", run["sft_pred"])
     if st.button("Reload", use_container_width=True):
-        report      = load_json(report_path)
-        predictions = load_json(pred_path)
-        st.success("Reloaded")
+        st.rerun()
 
     st.divider()
     st.caption("Audio Temporal Reasoning Pipeline\nBuilt by Mounish")
+
+# ── Load all outputs ──────────────────────────────────────────────────────────
+
+report      = load_json(report_path)
+predictions = load_json(pred_path)
+train_data  = load_json("data/train.json")
+test_data   = load_json("data/test.json")
+pref_data   = load_json("data/preference_pairs.json")
+ft_config   = load_yaml("configs/finetune_config.yaml")
+dpo_config  = load_yaml("configs/dpo_config.yaml")
 
 # ── Page header ───────────────────────────────────────────────────────────────
 
@@ -95,6 +128,93 @@ if predictions and any(p.get("simulated") for p in predictions):
     )
 
 st.divider()
+
+# =============================================================================
+# PAGE: SCALING CURVE
+# =============================================================================
+
+if page == "Scaling Curve":
+
+    st.subheader("Does more training data help? Three real runs, side by side")
+    st.markdown(
+        "Each row is an independent base→SFT comparison at increasing "
+        "training-data scale, with its own disjoint test set (not the same "
+        "clips re-scored). See `outputs/benchmark_report_*.json`."
+    )
+
+    rows = []
+    for label, paths in SCALE_RUNS.items():
+        b = load_json(paths["base_report"])
+        s = load_json(paths["sft_report"])
+        if not b or not s:
+            continue
+        rows.append({
+            "Run": label,
+            "Hallucination Base": b.get("hallucination_rate"),
+            "Hallucination SFT":  s.get("hallucination_rate"),
+            "ROUGE-L Base":       b.get("rouge_l"),
+            "ROUGE-L SFT":        s.get("rouge_l"),
+            "Temporal Acc. Base": b.get("temporal_ordering_accuracy"),
+            "Temporal Acc. SFT":  s.get("temporal_ordering_accuracy"),
+            "BERTScore Base":     b.get("bert_score"),
+            "BERTScore SFT":      s.get("bert_score"),
+            "Latency p50 Base (ms)": b.get("latency_p50_ms"),
+            "Latency p50 SFT (ms)":  s.get("latency_p50_ms"),
+            "Test size": s.get("total_samples"),
+        })
+
+    if not rows:
+        st.info(
+            "No scaling-run reports found yet. Run the base/SFT eval pair at "
+            "one or more scales and save the reports under the filenames "
+            "listed in `SCALE_RUNS` at the top of this file."
+        )
+    else:
+        df = pd.DataFrame(rows).iloc[::-1].reset_index(drop=True)  # smallest scale first
+
+        st.divider()
+        st.subheader("Hallucination rate — base vs. SFT, by scale")
+        fig_hall = go.Figure()
+        fig_hall.add_trace(go.Bar(x=df["Run"], y=df["Hallucination Base"], name="Base", marker_color=COLORS["base"]))
+        fig_hall.add_trace(go.Bar(x=df["Run"], y=df["Hallucination SFT"],  name="SFT",  marker_color=COLORS["sft"]))
+        fig_hall.update_layout(barmode="group", height=380, yaxis_title="Hallucination rate (%)")
+        st.plotly_chart(fig_hall, use_container_width=True)
+
+        col_a, col_b = st.columns(2)
+        with col_a:
+            st.markdown("**ROUGE-L — base vs. SFT, by scale**")
+            fig_r = go.Figure()
+            fig_r.add_trace(go.Bar(x=df["Run"], y=df["ROUGE-L Base"], name="Base", marker_color=COLORS["base"]))
+            fig_r.add_trace(go.Bar(x=df["Run"], y=df["ROUGE-L SFT"],  name="SFT",  marker_color=COLORS["green"]))
+            fig_r.update_layout(barmode="group", height=340, yaxis_title="ROUGE-L (%)")
+            st.plotly_chart(fig_r, use_container_width=True)
+        with col_b:
+            st.markdown("**Temporal ordering accuracy — base vs. SFT, by scale**")
+            fig_t = go.Figure()
+            fig_t.add_trace(go.Bar(x=df["Run"], y=df["Temporal Acc. Base"], name="Base", marker_color=COLORS["base"]))
+            fig_t.add_trace(go.Bar(x=df["Run"], y=df["Temporal Acc. SFT"],  name="SFT",  marker_color=COLORS["orange"]))
+            fig_t.update_layout(barmode="group", height=340, yaxis_title="Temporal ordering acc. (%)")
+            st.plotly_chart(fig_t, use_container_width=True)
+
+        st.divider()
+        st.subheader("Latency — base vs. SFT, by scale")
+        fig_lat = go.Figure()
+        fig_lat.add_trace(go.Bar(x=df["Run"], y=df["Latency p50 Base (ms)"], name="Base p50", marker_color=COLORS["base"]))
+        fig_lat.add_trace(go.Bar(x=df["Run"], y=df["Latency p50 SFT (ms)"],  name="SFT p50",  marker_color=COLORS["purple"]))
+        fig_lat.update_layout(barmode="group", height=340, yaxis_title="Latency p50 (ms)")
+        st.plotly_chart(fig_lat, use_container_width=True)
+
+        st.divider()
+        st.subheader("Full numbers")
+        st.dataframe(df, use_container_width=True, hide_index=True)
+
+        st.info(
+            "Honest read: the 300→1,000 sample jump drove most of the "
+            "improvement; 1,000→3,000 barely moved the needle further "
+            "(diminishing returns at this epoch count). Not every metric "
+            "improves monotonically — each run uses a different random "
+            "test set, so some movement is measurement noise, not regression."
+        )
 
 # =============================================================================
 # PAGE: OVERVIEW

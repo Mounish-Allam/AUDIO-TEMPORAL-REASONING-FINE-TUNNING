@@ -3,6 +3,14 @@ import sys
 import time
 sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 
+# Windows defaults stdout/stderr to the system codepage (not UTF-8) when
+# they aren't attached to a real console (e.g. redirected to a file or a
+# background process) — this print module uses non-ASCII characters
+# (arrows, em-dashes), which would otherwise raise UnicodeEncodeError.
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8")
+    sys.stderr.reconfigure(encoding="utf-8")
+
 import argparse
 from tqdm import tqdm
 from src.model import load_model_and_processor

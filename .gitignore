@@ -30,3 +30,7 @@ checkpoints/
 
 # Logs
 *.log
+
+# Local tool state (not project files)
+.claude/
+.gradio/
