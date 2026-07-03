@@ -1,0 +1,32 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.env
+venv/
+.venv/
+
+# Outputs, datasets, trained weights — never pushed to GitHub;
+# the dataset is re-downloaded by scripts/prepare_audiocaps.py
+outputs/
+data/
+checkpoints/
+*.json
+
+# Model weights
+*.bin
+*.safetensors
+*.pt
+*.pth
+
+# Audio files
+*.wav
+*.mp3
+*.flac
+
+# IDE
+.vscode/
+.idea/
+
+# Logs
+*.log

@@ -1,0 +1,19 @@
+# Inference defaults.
+# NOTE: the scripts take their settings from CLI flags; these YAMLs document
+# the recommended values and are displayed in the dashboard's config viewer.
+
+model:
+  model_id: "Qwen/Qwen2.5-Omni-7B"
+  adapter_path: "checkpoints/final_adapter"   # your trained LoRA adapter
+  dtype: "bfloat16"          # use --use_4bit on 16 GB GPUs (free T4)
+  device_map: "auto"
+
+inference:
+  max_new_tokens: 256
+  do_sample: false           # greedy decoding for reproducible evals
+  seed: 42
+
+audio:
+  format: "wav"
+  sample_rate: 16000
+  channels: 1

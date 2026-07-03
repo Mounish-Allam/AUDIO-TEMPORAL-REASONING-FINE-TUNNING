@@ -1,0 +1,28 @@
+model:
+  model_id: "Qwen/Qwen2.5-Omni-7B"
+  sft_adapter: "checkpoints/final_adapter"
+
+dpo:
+  beta: 0.05
+  num_epochs: 2
+  batch_size: 2
+  learning_rate: 5e-5
+  max_length: 1024
+  grad_accum: 8
+
+lora:
+  r: 32
+  lora_alpha: 64
+  lora_dropout: 0.05
+  target_modules:
+    - "q_proj"
+    - "k_proj"
+    - "v_proj"
+    - "o_proj"
+    - "gate_proj"
+    - "up_proj"
+    - "down_proj"
+
+paths:
+  preference_data: "data/preference_pairs.json"
+  output_dir: "checkpoints/dpo/"
