@@ -34,3 +34,4 @@ checkpoints/
 # Local tool state (not project files)
 .claude/
 .gradio/
+CLAUDE.md
